@@ -5,9 +5,13 @@ import { View, Text, StyleSheet } from 'react-native';
 const Footer =(props)=>(
   <View style={styles.footer}>
     <TextInput
+      value={props.value}
       style={styles.input}
       placeholder="Say someting here!"
       onChangeText={props.handleInput}
+      onSubmitEditing={props.completeInput}
+      blurOnsubmit={false}
+      returnKeytype="done"
     />
     <TouchableHighlight
       style={styles.button}
