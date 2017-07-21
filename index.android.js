@@ -3,25 +3,26 @@ import { AppRegistry,View, Text, StyleSheet, ScrollView } from 'react-native';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Users from './components/Users';
-
+var ws;
 export default class FirstReactApp extends Component {
   constructor(props){
-    super(props); //why i need super?
+    super(props);
     this.state = {
       text:'',
       messages:[],
       users:[],
     };
+    this.ws={};
     this.handleInput = this.handleInput.bind(this);
     this.completeInput = this.completeInput.bind(this);
   }
 
   componentDidMount(){
-    const ws = new WebSocket('wss://buct.briangillespie.net/messages');
+    this.ws = new WebSocket('wss://buct.briangillespie.net/messages');
 
-    ws.onopen = () => {
+    this.ws.onopen = () => {
       console.log("connection is open!")
-      ws.send(JSON.stringify({
+      this.ws.send(JSON.stringify({
         type:'JOIN',
         data:{
           username:'flayhhh',
@@ -31,24 +32,19 @@ export default class FirstReactApp extends Component {
       }));
     };
 
-    ws.onmessage = (e) => {
+    this.ws.onmessage = (e) => {
       console.log(e.data);
       var o = JSON.parse(e.data);
-      if(o.event==='UPDATE'){
-        console.log('in');
-        const newUsers = [
-          ...this.state.users ,
-          {
-            username:o.data[0].username,
-            screenname:o.data[0].screenname,
-            avatar_url:o.data[0].avatar_url
-          }
-        ]
+      if(o.event==="UPDATE"&&o.channel==='users'){
+
+        const newUsers = o.data
         this.setState({
           users:newUsers
         })
+        console.log('in');
+        console.log(this.state.users);
       }
-      console.log(this.state.users);
+
     };
 
 
@@ -71,16 +67,26 @@ export default class FirstReactApp extends Component {
         text:this.state.text,
       }
     ]
+
+    this.ws.send(JSON.stringify({
+      type:'MESSAGE',
+      data:{
+        usernames:this.state.users.map(  (e)=>(e.username) ),
+        body:this.state.text,
+      }
+    }));
+
     this.setState({
       messages:newMessages,
       text:''
     })
+
   }
 
   render() {
     return (
       <View style={styles.container}>
-        <Header title="My App Title"/>
+        <Header title="Simple Chatting APP"/>
 
         <View style={styles.middle}>
           <Users users={this.state.users} />
